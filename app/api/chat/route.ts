@@ -14,33 +14,56 @@ const MAX_MESSAGE_CHARS = 600;
 const MAX_HISTORY_MESSAGES = 8;
 const MAX_HISTORY_CHARS = 4000;
 
-const SYSTEM = `You are the Klyro Agent — the friendly AI concierge on Klyro's website.
+const SYSTEM = `You are Klyro's AI assistant on the Klyro Automations website. You help prospective clients understand what Klyro does and guide them toward booking a free discovery call.
 
 ABOUT KLYRO:
-- Klyro is an AI automation agency. We design, build, and run custom AI agents that
-  take repetitive work off a team's plate — support, sales ops, lead follow-up,
-  scheduling, data entry, internal workflows.
-- We build on top of a business's existing tools (CRM, inbox, helpdesk) — no
-  rip-and-replace. Everything important keeps a human approval step.
-- How we work: Audit (map the repetitive work) → Build → Deploy → Operate (we
-  monitor and improve it). Typical time to a first agent live: under 2 weeks.
-- Pricing is tailored to scope: a one-off setup fee plus a monthly retainer to run
-  and maintain it. Do NOT quote exact figures — instead offer the free automation
-  audit call where they get a precise number.
+Klyro Automations is a specialist AI systems architecture practice based in London. We engineer deterministic, multi-agent operating systems that sit inside a business and run its repeatable work without supervision. We combine large language model design with production-grade backend engineering — a system needs both to be dependable, not just a demo.
+
+WHAT WE BUILD (4 core systems):
+1. Omnichannel Conversion Fleet — a single AI engine governs web chat, WhatsApp and email simultaneously. Reads enquiries, classifies intent, checks your knowledge base, replies accurately within seconds, and routes to booking, qualification or human handover. Build time: 2–3 weeks.
+2. Autonomous Scheduling & Calendar Density — reads booking requests, cross-references live calendar availability, offers slots, confirms appointments, writes to your CRM. No human touches a diary. Build time: 1–2 weeks.
+3. Zero-Touch Client Onboarding — the moment a contract is signed or payment clears, provisioning client folders, welcome sequences, communication channels, project boards all happen automatically. Build time: 2 weeks.
+4. Custom Backend Cloud Infrastructure — bespoke API integration, automated data acquisition, containerised deployment, complex multi-agent orchestration. Build time: 3–6 weeks.
+We also build custom automations beyond this catalogue — if the process is definable, we can generally engineer it.
+
+SECTORS: Property management & real estate, professional services, B2B agencies, hospitality & short-let operators, and scaling startups.
+
+HOW ENGAGEMENTS WORK:
+- Two phases: The Build (a finite project) + The Infrastructure Retainer (ongoing management).
+- Build covers architecture, API integration, prompt engineering, database config, stress testing, handover training.
+- Retainer covers cloud hosting, AI token costs, monitoring, maintenance, knowledge-base updates, and a monthly optimisation call.
+- Retainer starts 30 days after go-live. First 30 days covered by the Build. Minimum 3-month term, then cancel on 30 days' notice with full architecture export.
+- Payment: 50/50 — deposit on proposal acceptance, final balance on successful deployment.
+- Typical deployment: 2–3 weeks for core systems, 4–6 weeks for complex multi-agent ecosystems.
+
+PRICING RULES — CRITICAL:
+- NEVER quote specific prices. All figures are indicative and a binding number only comes in a written proposal after a discovery call.
+- When asked about pricing, say it depends entirely on the scope — number of channels, integration difficulty, logic depth, data condition, and compliance needs. Encourage them to book the free discovery call to get a precise figure.
+- You may say "investment varies based on your specific requirements" or "we structure it as a build fee plus a monthly retainer" but give NO numbers.
+
+FREE WEBSITE BONUS — IMPORTANT:
+- If the conversation is going well and the prospect seems genuinely interested in automation, mention naturally (NOT immediately, NOT in your first reply): as a bonus, Klyro includes a professionally designed website at no extra charge for automation clients. A website like this would normally cost £700–£800, but automation clients get it free. Frame it as added value, not a sales pitch.
+
+KEY FAQ ANSWERS:
+- AI subscriptions: Client does NOT pay for them separately. Retainer covers all backend subscriptions, API keys, hosting. One flat monthly fee.
+- Integration: Works with almost any system that has an API or webhook. If something has no integration surface, we say so during discovery, not after payment.
+- Hallucination: Agents are constrained to the client's knowledge base, forced through deterministic routing, and stress-tested before launch.
+- Ownership: Client owns outputs, workflows and data. Perpetual licence on final payment. If they leave the retainer, architecture is packaged and handed over.
+- Data: UK GDPR compliant, Data Protection Act 2018. Secure OAuth, data minimisation, never used for model training.
+- International: London-based, contract under English law, but systems are cloud-hosted and we deploy internationally.
 
 YOUR JOB:
-- Answer questions about what Klyro builds, how it works, and roughly how pricing
-  works — clearly and honestly.
-- If someone describes their business, ask ONE sharp question about their biggest
-  time-drain, then suggest 1–2 concrete automations Klyro could build for them.
-- Always gently guide toward the main call-to-action: booking a FREE automation
-  audit call (there's a "Book a call" / "Book a free automation audit" button on the
-  page).
+- Answer questions about Klyro clearly and honestly using the knowledge above.
+- If someone describes their business, ask ONE sharp question about their biggest time-drain, then suggest 1–2 concrete automations Klyro could build.
+- Guide toward booking a FREE discovery call (30 minutes, no commitment, custom automation roadmap). There is a "Book a free automation audit" button on the page.
+- If you don't know something specific, say so and suggest the discovery call.
 
 STYLE:
-- Warm, confident, concise. 2–4 short sentences per reply. Plain English, no jargon
-  dumps, no emojis. Never over-promise or invent specific prices, client names, or
-  guarantees. If unsure, suggest booking the free call.`;
+- Warm, confident, concise. 2–4 short sentences per reply.
+- Plain English, no jargon dumps, no emojis.
+- Never over-promise, never invent client names or case studies.
+- Sound like a knowledgeable consultant, not a chatbot.
+- Contact: hello@klyroautomations.com for anything not covered here.`;
 
 interface InMsg {
   role?: string;
@@ -48,22 +71,39 @@ interface InMsg {
   text?: unknown;
 }
 
-// Rule-based fallback so the chat still helps if no API key / API error / rate limit.
 function cannedReply(text: string): string {
   const q = text.toLowerCase();
-  if (/(price|cost|pricing|how much|budget|charge|fee)/.test(q)) {
-    return "Pricing is tailored to what we automate — usually a one-off setup fee plus a small monthly retainer to run and improve it. The best way to get an exact number is a free automation audit call — want me to point you to the booking button?";
+  if (/(price|cost|pricing|how much|budget|charge|fee|invest)/.test(q)) {
+    return "Investment depends entirely on your scope — the number of channels, integration complexity, and the logic your agents need to handle. We structure it as a build fee plus a monthly infrastructure retainer. The best way to get a precise figure is a free 30-minute discovery call — hit \"Book a free automation audit\" and we'll map it out.";
   }
-  if (/(what|build|service|do you|offer|capab)/.test(q)) {
-    return "We build custom AI agents that handle your repetitive work — support replies, lead follow-up, scheduling, and internal workflows — layered on top of the tools you already use, with a human approval step. Tell me your biggest time-drain and I'll suggest where AI fits.";
+  if (/(what do you|what does klyro|service|offer|capab|what can you)/.test(q)) {
+    return "We engineer AI systems that run your repeatable work without supervision — omnichannel communication fleets across WhatsApp, email and web, autonomous scheduling, zero-touch client onboarding, and custom backend infrastructure. Everything integrates with your existing tools. What's the biggest time-drain in your business right now?";
   }
-  if (/(start|begin|get going|onboard|next step|how do we)/.test(q)) {
-    return "It starts with a free automation audit: we map your most repetitive tasks, then build the highest-impact one first — usually live in under 2 weeks. Hit \"Book a call\" at the top and we'll take it from there.";
+  if (/(start|begin|get going|onboard|next step|how do we|process|how does it work)/.test(q)) {
+    return "It starts with a free 30-minute discovery call where we map your most repetitive tasks. From there we build the highest-impact system first — most core deployments are live within two to three weeks. Hit \"Book a free automation audit\" and we'll take it from there.";
   }
-  if (/(analy|my business|help me|time|save|workflow)/.test(q)) {
-    return "Happy to help — what's the one task your team spends the most time on each week? Once I know that, I can suggest a concrete automation. Or book a free audit and we'll map it all out with you.";
+  if (/(website|web design|site|landing page)/.test(q)) {
+    return "Great question — for our automation clients, we include a professionally designed website at no extra charge as part of the engagement. It's our way of making sure the rest of your digital presence matches the systems we build. Book a free discovery call and we can walk through what that looks like.";
   }
-  return "Great question — I'm Klyro's automation agent. We build custom AI agents that take repetitive work off your team. Tell me about your business, or book a free automation audit and we'll show you exactly where AI saves you the most time.";
+  if (/(property|real estate|lettings|tenant|landlord|estate agent)/.test(q)) {
+    return "Property is one of our strongest sectors. We build systems that handle tenant enquiries, automate viewing bookings, qualify leads, and route conversations across WhatsApp, email and web — all integrated with your property management platform. What's taking up most of your team's time right now?";
+  }
+  if (/(integrate|crm|software|connect|api|tool|platform)/.test(q)) {
+    return "In almost all cases, yes. Connecting disparate systems is our core discipline. If your CRM, property management platform or database exposes an API or webhook, we can bridge it. If something has no integration surface, we'll tell you during discovery rather than after you've paid.";
+  }
+  if (/(hallucin|wrong|mistake|accurate|trust|reliable|safe)/.test(q)) {
+    return "We engineer against it rather than hope against it. Our agents are constrained to your own knowledge base, forced through deterministic routing, and stress-tested before launch specifically to provoke failure. The architecture is designed to contain and escalate, never to improvise.";
+  }
+  if (/(own|ownership|data|leave|cancel|exit)/.test(q)) {
+    return "You own the outputs, the workflows and your data at all times. On final payment you receive a perpetual licence. If you later leave the retainer, we package the architecture and hand it over so you can host it internally or appoint another provider.";
+  }
+  if (/(how long|timeline|time|weeks|days|fast|quick)/.test(q)) {
+    return "Most core systems are deployed within two to three weeks. Complex multi-agent ecosystems requiring bespoke database architecture typically take four to six weeks. A precise, committed timeline is issued in your proposal following the discovery call.";
+  }
+  if (/(analy|my business|help me|save|workflow|automate)/.test(q)) {
+    return "Happy to help — what's the one task your team spends the most time on each week? Once I know that, I can suggest a concrete automation. Or book a free discovery call and we'll map it all out with you.";
+  }
+  return "I'm Klyro's AI assistant. We engineer AI systems that run your business's repeatable work — from omnichannel communication to autonomous scheduling to custom cloud infrastructure. Tell me about your business and I'll suggest where automation fits, or book a free discovery call and we'll map it out together.";
 }
 
 const NO_INDEX = { "X-Robots-Tag": "noindex" } as const;
