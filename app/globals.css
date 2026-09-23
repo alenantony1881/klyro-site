@@ -2,26 +2,115 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+  Dark is the BASE. LivingBackground is fixed behind everything, so dark sections
+  simply paint nothing and let the particle network show through. Light sections
+  opt in with `.theme-light`, which redefines the same variable names and paints
+  an opaque background — deliberately occluding the canvas. See ThemeSection.
+*/
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Warmed and desaturated away from cold blue-black so text has something to
+     sit against. --background-2 is the haze stop used by the body gradient. */
+  --background: #121114;
+  --background-2: #1a191e;
+  --foreground: #f4f3f6;
+  --surface: #1b1a21;
+  --surface-2: #232229;
+  --border: #2c2b34;
+  --border-strong: #3c3b47;
+  --muted: #a5a3ad;
+  --muted-2: #7f7d89;
+  --accent: #7c6cff;
+  --accent-light: #a89bff;
+  --accent-glow: rgba(124, 108, 255, 0.35);
+  --lime: #d6ff4e;
+  --lime-dim: #c7ef3c;
+
+  /* Consumed by the canvas so it tracks the theme instead of hardcoding hexes.
+     Desaturated toward lilac-white so the network reads as light rather than
+     purple confetti. .theme-light deliberately does not redefine these — that is
+     what keeps the network out of the light sections. */
+  --node-core: #d0cbdc;
+  --node-dim: #7d73a8;
+  --node-link: 168, 162, 190;
+  --node-pulse: 242, 240, 255;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+.theme-light {
+  --background: #f6f7f9;
+  --background-2: #f6f7f9;
+  --foreground: #0f1015;
+  --surface: #ffffff;
+  --surface-2: #eef0f4;
+  --border: #e5e7ec;
+  --border-strong: #d3d6de;
+  --muted: #565963;
+  --muted-2: #696c76;
+  --accent: #5538d9;
+  --accent-light: #8b7cff;
+  --accent-glow: rgba(110, 91, 255, 0.35);
+  --lime: #d6ff4e;
+  --lime-dim: #c7ef3c;
+}
+
+* {
+  border-color: var(--border);
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  /* One static paint. Lifts the mid-tones behind the hero so the type has a
+     ground to sit on instead of floating on flat near-black. */
+  background:
+    radial-gradient(
+      ellipse 120% 70% at 50% 18%,
+      var(--background-2),
+      var(--background) 62%
+    )
+    var(--background);
+}
+
+::selection {
+  background: var(--accent);
+  color: #ffffff;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 2px;
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+
+  .mask-fade-x {
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      black 10%,
+      black 90%,
+      transparent
+    );
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
